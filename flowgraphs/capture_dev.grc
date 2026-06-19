@@ -1,0 +1,540 @@
+options:
+  parameters:
+    author: gr-dis dev
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Dual-channel WBFM dev capture - publishes to the gr-dis bridge over
+      ZMQ. See flowgraphs/README.md for usage.
+    gen_cmake: 'Off'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: capture_dev
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: gr-dis Dev Capture
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: audio_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: int(48e3)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [776, 8.0]
+    rotation: 0
+    state: enabled
+- name: center_freq
+  id: variable
+  parameters:
+    comment: SDR LO - must match sdr.center_freq_hz in config.
+    value: 107.3e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [272, 40.0]
+    rotation: 0
+    state: enabled
+- name: channel_id_1
+  id: variable
+  parameters:
+    comment: Must match a channel id in config (used as ZMQ topic prefix).
+    value: '"fm_ch1"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [544, 8.0]
+    rotation: 0
+    state: enabled
+- name: channel_id_2
+  id: variable
+  parameters:
+    comment: ''
+    value: '"fm_ch2"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [648, 8.0]
+    rotation: 0
+    state: enabled
+- name: gain_db
+  id: variable_qtgui_range
+  parameters:
+    comment: SDR front-end gain. Tune until target station is audible without clipping.
+    gui_hint: 2,1,1,1
+    label: Gain (dB)
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '0'
+    step: '1'
+    stop: '50'
+    value: '20'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 456.0]
+    rotation: 0
+    state: enabled
+- name: rf_freq_1
+  id: variable_qtgui_range
+  parameters:
+    comment: Tunes the freq_xlating filter AND triggers a meta ZMQ frame on change,
+      causing the bridge to emit a fresh Transmitter PDU.
+    gui_hint: 0,0,1,2
+    label: RF 1 Frequency (Hz)
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: center_freq-(samp_rate/2)
+    step: 100e3
+    stop: center_freq+(samp_rate/2)
+    value: 107.7e6
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 160.0]
+    rotation: 0
+    state: enabled
+- name: rf_freq_2
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: 1,0,1,2
+    label: RF 2 Frequency (Hz)
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: center_freq-(samp_rate/2)
+    step: 100e3
+    stop: center_freq+(samp_rate/2)
+    value: 106.9e6
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [160, 144.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: "Must match sdr.sample_rate_hz in config; 2.4 MHz → wfm_rcv →\
+      \ 48 kHz → rational resampler (\xF76) → 8 kHz for DIS Signal PDUs."
+    value: '2400000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [176, 56.0]
+    rotation: 0
+    state: enabled
+- name: squelch_db
+  id: variable_qtgui_range
+  parameters:
+    comment: Power squelch threshold in dBFS. Start around -60; tune to noise floor.
+    gui_hint: 2,0,1,1
+    label: Squelch (dBFS)
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '-100'
+    step: '1'
+    stop: '0'
+    value: '-90'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 320.0]
+    rotation: 0
+    state: enabled
+- name: zmq_endpoint
+  id: variable
+  parameters:
+    comment: Bridge ZMQ bind address - must match bridge.zmq_bind in config.
+    value: '"tcp://127.0.0.1:5555"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [376, 24.0]
+    rotation: 0
+    state: enabled
+- name: analog_pwr_squelch_cc_0
+  id: analog_pwr_squelch_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: 1e-3
+    comment: 'alpha=1e-3 (tau~21 ms) tracks PTT timing; GR default 1e-4 is too slow
+      for voice.
+
+      ramp=2400 samples = 1 ms @ 2.4 MHz. set_threshold() called live by the squelch
+      slider.'
+    gate: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ramp: '2400'
+    threshold: squelch_db
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 176.0]
+    rotation: 0
+    state: enabled
+- name: analog_pwr_squelch_cc_0_0
+  id: analog_pwr_squelch_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: 1e-3
+    comment: 'alpha=1e-3 (tau~21 ms) tracks PTT timing; GR default 1e-4 is too slow
+      for voice.
+
+      ramp=2400 samples = 1 ms @ 2.4 MHz. set_threshold() called live by the squelch
+      slider.'
+    gate: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ramp: '2400'
+    threshold: squelch_db
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [840, 416.0]
+    rotation: 0
+    state: enabled
+- name: analog_wfm_rcv_0
+  id: analog_wfm_rcv
+  parameters:
+    affinity: ''
+    alias: ''
+    audio_decimation: int(samp_rate/audio_rate)
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quad_rate: samp_rate
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1048, 192.0]
+    rotation: 0
+    state: enabled
+- name: analog_wfm_rcv_0_0
+  id: analog_wfm_rcv
+  parameters:
+    affinity: ''
+    alias: ''
+    audio_decimation: int(samp_rate/audio_rate)
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quad_rate: samp_rate
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1080, 432.0]
+    rotation: 0
+    state: enabled
+- name: audio_sink_0
+  id: audio_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    device_name: ''
+    num_inputs: '2'
+    ok_to_block: 'True'
+    samp_rate: audio_rate
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1392, 288.0]
+    rotation: 0
+    state: disabled
+- name: blocks_float_to_short_0
+  id: blocks_float_to_short
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Cast float to int16.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1488, 160.0]
+    rotation: 0
+    state: enabled
+- name: blocks_float_to_short_0_0
+  id: blocks_float_to_short
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Cast float to int16.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1520, 400.0]
+    rotation: 0
+    state: enabled
+- name: blocks_multiply_const_vxx_0
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Scale float [-1, 1] to int16 range before cast.
+    const: '32767'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 176.0]
+    rotation: 0
+    state: enabled
+- name: blocks_multiply_const_vxx_0_0
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Scale float [-1, 1] to int16 range before cast.
+    const: '32767'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1312, 416.0]
+    rotation: 0
+    state: enabled
+- name: gr_dis_zmq_audio_sink_0
+  id: gr_dis_zmq_audio_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ZMQ audio publisher. set_rf_freq_hz() is called live by the RF-freq
+      slider, triggering a meta frame so the bridge emits a fresh Transmitter PDU.
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    endpoint: zmq_endpoint
+    channel_id: channel_id_1
+    chain_name: '"wfm"'
+    rf_freq_hz: rf_freq_1
+    channel_bw_hz: '200000'
+    squelch_rms: '50.0'
+    chain_config: '{}'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1704, 104.0]
+    rotation: 0
+    state: enabled
+- name: gr_dis_zmq_audio_sink_0_0
+  id: gr_dis_zmq_audio_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    endpoint: zmq_endpoint
+    channel_id: channel_id_2
+    chain_name: '"wfm"'
+    rf_freq_hz: rf_freq_2
+    channel_bw_hz: '200000'
+    squelch_rms: '50.0'
+    chain_config: '{}'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1736, 344.0]
+    rotation: 0
+    state: enabled
+- name: freq_xlating_fir_filter_ccc_0_0
+  id: freq_xlating_fir_filter_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    center_freq: rf_freq_1 - center_freq
+    comment: "WFM channel select: shifts station to DC, 100 kHz LPF for \xB175 kHz\
+      \ FM deviation. decim=1 preserves full 2.4 MHz bandwidth for wfm_rcv quad_rate.\n\
+      type=ccf uses real taps from firdes.low_pass (more efficient than ccc).\nset_center_freq()\
+      \ is called live by the RF-freq slider callback."
+    decim: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    taps: firdes.low_pass(1.0, samp_rate, 100000, 25000)
+    type: ccf
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [496, 200.0]
+    rotation: 0
+    state: enabled
+- name: freq_xlating_fir_filter_ccc_0_0_0
+  id: freq_xlating_fir_filter_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    center_freq: rf_freq_2 - center_freq
+    comment: "WFM channel select: shifts station to DC, 100 kHz LPF for \xB175 kHz\
+      \ FM deviation. decim=1 preserves full 2.4 MHz bandwidth for wfm_rcv quad_rate.\n\
+      type=ccf uses real taps from firdes.low_pass (more efficient than ccc).\nset_center_freq()\
+      \ is called live by the RF-freq slider callback."
+    decim: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    taps: firdes.low_pass(1.0, samp_rate, 100000, 25000)
+    type: ccf
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [536, 448.0]
+    rotation: 0
+    state: enabled
+- name: rational_resampler_xxx_0
+  id: rational_resampler_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    decim: int(audio_rate/8000)
+    fbw: '0.4'
+    interp: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    taps: '[]'
+    type: fff
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1144, 48.0]
+    rotation: 0
+    state: enabled
+- name: rational_resampler_xxx_0_0
+  id: rational_resampler_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    decim: int(audio_rate/8000)
+    fbw: '0.4'
+    interp: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    taps: '[]'
+    type: fff
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1176, 320.0]
+    rotation: 0
+    state: enabled
+- name: soapy_rtlsdr_source_0
+  id: soapy_rtlsdr_source
+  parameters:
+    affinity: ''
+    agc: 'False'
+    alias: ''
+    bias: 'False'
+    bufflen: '16384'
+    center_freq: center_freq
+    comment: ''
+    dev_args: ''
+    freq_correction: '0'
+    gain: gain_db
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    type: fc32
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [208, 328.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [analog_pwr_squelch_cc_0, '0', analog_wfm_rcv_0, '0']
+- [analog_pwr_squelch_cc_0_0, '0', analog_wfm_rcv_0_0, '0']
+- [analog_wfm_rcv_0, '0', audio_sink_0, '0']
+- [analog_wfm_rcv_0, '0', rational_resampler_xxx_0, '0']
+- [analog_wfm_rcv_0_0, '0', audio_sink_0, '1']
+- [analog_wfm_rcv_0_0, '0', rational_resampler_xxx_0_0, '0']
+- [blocks_float_to_short_0, '0', gr_dis_zmq_audio_sink_0, '0']
+- [blocks_float_to_short_0_0, '0', gr_dis_zmq_audio_sink_0_0, '0']
+- [blocks_multiply_const_vxx_0, '0', blocks_float_to_short_0, '0']
+- [blocks_multiply_const_vxx_0_0, '0', blocks_float_to_short_0_0, '0']
+- [freq_xlating_fir_filter_ccc_0_0, '0', analog_pwr_squelch_cc_0, '0']
+- [freq_xlating_fir_filter_ccc_0_0_0, '0', analog_pwr_squelch_cc_0_0, '0']
+- [rational_resampler_xxx_0, '0', blocks_multiply_const_vxx_0, '0']
+- [rational_resampler_xxx_0_0, '0', blocks_multiply_const_vxx_0_0, '0']
+- [soapy_rtlsdr_source_0, '0', freq_xlating_fir_filter_ccc_0_0, '0']
+- [soapy_rtlsdr_source_0, '0', freq_xlating_fir_filter_ccc_0_0_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.11.0

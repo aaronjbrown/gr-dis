@@ -1,0 +1,71 @@
+id: gr_dis_zmq_audio_sink
+label: ZMQ Audio Sink (gr-dis)
+category: '[gr-dis]'
+
+documentation: |-
+  Publishes int16 PCM audio frames to a running gr-dis bridge over ZMQ.
+
+  Consumes a mono int16 stream at 8 kHz, buffers it into 20 ms frames, and
+  publishes three topic types on the configured endpoint:
+    audio.<channel_id>   20 ms PCM frames with squelch flag
+    meta.<channel_id>    channel metadata heartbeat (5 s, and on set_rf_freq_hz)
+    event.<channel_id>   squelch_open / squelch_close RMS transitions
+
+  The endpoint must match bridge.zmq_bind in the gr-dis config file.
+  channel_id must match a channels[].id entry in the config.
+
+templates:
+  imports: from gr_dis.engine.zmq_sink import make_zmq_audio_sink
+  make: >-
+    make_zmq_audio_sink(
+        ${endpoint},
+        ${channel_id},
+        chain_name=${chain_name},
+        rf_freq_hz=int(${rf_freq_hz}),
+        channel_bandwidth_hz=int(${channel_bw_hz}),
+        squelch_rms_threshold=${squelch_rms},
+        chain_config=${chain_config},
+    )
+  callbacks:
+  - set_rf_freq_hz(int(${rf_freq_hz}))
+
+parameters:
+- id: endpoint
+  label: ZMQ Endpoint
+  dtype: string
+  default: '"tcp://127.0.0.1:5555"'
+- id: channel_id
+  label: Channel ID
+  dtype: string
+  default: '"ch0"'
+- id: chain_name
+  label: Chain Name
+  dtype: string
+  default: '"nbfm"'
+  hide: part
+- id: rf_freq_hz
+  label: RF Frequency (Hz)
+  dtype: real
+  default: '144800000'
+- id: channel_bw_hz
+  label: Channel Bandwidth (Hz)
+  dtype: int
+  default: '25000'
+  hide: part
+- id: squelch_rms
+  label: Squelch RMS Threshold
+  dtype: float
+  default: '50.0'
+  hide: part
+- id: chain_config
+  label: Chain Config
+  dtype: raw
+  default: '{}'
+  hide: part
+
+inputs:
+- label: in
+  domain: stream
+  dtype: short
+
+file_format: 1

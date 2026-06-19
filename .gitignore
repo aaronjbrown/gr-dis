@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Build artifacts
+dist/
+build/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+
+# Exercise-specific config kept out of git
+config.exercise.yaml
+
+# Large synthesized / recorded IQ fixtures — regenerate with
+# scripts/synth-nbfm-fixture.py or record fresh with rx_sdr
+tests/fixtures/recorded_iq/*.cf32
+tests/fixtures/recorded_iq/*.cs16
+tests/fixtures/recorded_iq/*.iq

@@ -1,0 +1,88 @@
+# gnuradio-dis-bridge example config
+# Replace all <<TODO>> values with real ones from your exercise operator.
+
+dis:
+  version: 7
+  exercise_id: 1                  # <<TODO from exercise>>
+  site_id: 1                      # <<TODO from exercise>>
+  application_id: 100             # <<TODO from exercise>>
+  multicast: 239.1.2.3            # <<TODO from exercise>>
+  port: 3000                      # <<TODO from exercise>>
+  ttl: 16
+  source_interface: 0.0.0.0
+  loopback: true
+  heartbeat_interval_seconds: 5.0
+  signal_pdu_ms: 20
+  idle_behavior: hard_mute        # or send_silence
+
+bridge:
+  zmq_bind: tcp://127.0.0.1:5555
+  metrics_bind: 127.0.0.1:9180
+  log_level: INFO
+  log_format: json
+
+captures:
+  - id: cap_vhf
+    zmq_connect: tcp://127.0.0.1:5555
+    sdr:
+      driver: rtlsdr              # any SoapySDR driver: hackrf, uhd, lime, ...
+      args: {}                    # e.g. { serial: "00000001" }
+      center_freq_hz: 145500000   # tuned LO — 145.5 MHz
+      sample_rate_hz: 2400000     # 2.4 MHz window covers 144.3–146.7 MHz
+      gain_db: 20
+      bandwidth_hz: null
+      antenna: null
+
+    channels:
+      # ----- A standalone NBFM radio at 144.8 MHz -----
+      - id: vhf_ch1
+        rf_freq_hz: 144800000     # within the 144.3–146.7 MHz window
+        bandwidth_hz: 25000
+        chain: nbfm
+        chain_config:
+          deviation_hz: 5000
+          audio_lpf_hz: 3400
+          squelch_db: -60
+          squelch_ramp_ms: 50
+        radio:
+          radio_id: 1
+          entity_id: { site: 1, app: 100, entity: 5001 }   # <<TODO from exercise>>
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]   # <<TODO>>
+          radio_entity_type:
+            kind: 7        # Radio
+            domain: 3      # Surface
+            country: 225   # <<TODO>>
+            category: 1
+            subcategory: 0
+            specific: 0
+            extra: 0
+          power_dbm: 0.0
+          input_source: 1  # Pilot
+
+      # ----- A radio attached to an existing entity at 146.4 MHz -----
+      - id: vhf_ch2
+        rf_freq_hz: 146400000     # within the 144.3–146.7 MHz window
+        bandwidth_hz: 25000
+        chain: nbfm
+        chain_config:
+          deviation_hz: 5000
+          audio_lpf_hz: 3400
+          squelch_db: -55
+        radio:
+          radio_id: 2                                         # 2nd radio on the parent
+          entity_id: { site: 1, app: 100, entity: 12 }        # <<TODO parent entity>>
+          attached: true
+          relative_antenna_location: [1.5, 0.0, 2.2]          # body-relative metres
+          antenna_location_ecef: [3875010.0, 332005.0, 5025020.0]  # <<TODO>>
+          radio_entity_type:
+            kind: 7
+            domain: 2      # Air
+            country: 225
+            category: 1
+            subcategory: 0
+            specific: 0
+            extra: 0
+          power_dbm: 5.0
+          input_source: 1

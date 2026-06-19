@@ -1,0 +1,69 @@
+# gr-dis config — 146.950 MHz NBFM, TX-loopback ready
+#
+# TX loopback walkthrough: docs/configuration.md#tx-loopback-test
+#
+# Replace <<TODO>> values with real ones from your exercise operator.
+
+dis:
+  version: 7
+  exercise_id: 1                  # <<TODO from exercise>>
+  site_id: 1                      # <<TODO from exercise>>
+  application_id: 101             # <<TODO from exercise>>
+  multicast: 239.1.2.3            # <<TODO from exercise>>
+  port: 3000                      # <<TODO from exercise>>
+  ttl: 16
+  source_interface: 0.0.0.0
+  loopback: true
+  heartbeat_interval_seconds: 5.0
+  signal_pdu_ms: 20
+  idle_behavior: hard_mute
+
+bridge:
+  zmq_bind:    tcp://127.0.0.1:5555
+  zmq_tx_bind: tcp://127.0.0.1:5556   # bridge publishes decoded TX audio here
+  metrics_bind: 127.0.0.1:9180
+  log_level: INFO
+  log_format: json
+
+captures:
+  - id: cap_vhf
+    zmq_connect:    tcp://127.0.0.1:5555
+    zmq_tx_connect: tcp://127.0.0.1:5556   # capture reads TX audio from here
+    sdr:
+      driver: rtlsdr              # any SoapySDR driver; bypassed when using --source-file
+      args: {}
+      center_freq_hz: 146700000   # 146.7 MHz — 146.950 MHz falls at +250 kHz offset
+      sample_rate_hz: 2400000     # 2.4 MHz window covers 145.5–147.9 MHz
+      gain_db: 20
+      bandwidth_hz: null
+      antenna: null
+      duplex: half                # required by config validation when tx_enabled: true
+
+    channels:
+      - id: vhf_ch1
+        rf_freq_hz: 146950000     # 146.950 MHz — common VHF FM repeater output / simplex
+        bandwidth_hz: 25000       # 25 kHz NBFM channel
+        chain: nbfm
+        chain_config:
+          deviation_hz: 5000      # ±5 kHz deviation (standard NBFM voice)
+          audio_lpf_hz: 3400
+          squelch_db: -60         # open squelch for file-source playback
+          squelch_ramp_ms: 50
+        tx_enabled: true          # bridge relays incoming Signal PDUs as TX audio
+        tx_filter: null           # accept TX from any entity on this frequency
+        radio:
+          radio_id: 1
+          entity_id: { site: 1, app: 101, entity: 5001 }   # <<TODO from exercise>>
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]  # <<TODO>>
+          radio_entity_type:
+            kind: 7        # Radio
+            domain: 3      # Surface
+            country: 13    # <<TODO>>
+            category: 1
+            subcategory: 0
+            specific: 0
+            extra: 0
+          power_dbm: 10.0
+          input_source: 1  # Pilot

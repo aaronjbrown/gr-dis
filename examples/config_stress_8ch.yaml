@@ -1,0 +1,180 @@
+# 8-channel NBFM stress / scale demo config (Phase 5 AC1).
+#
+# Pair with: tests/fixtures/recorded_iq/nbfm_multichannel.cf32
+#   .venv/bin/python scripts/synth-nbfm-multichannel-fixture.py
+#
+# Run:
+#   toolbox run --container gr-dis gr-dis run \
+#     --config examples/config_stress_8ch.yaml \
+#     --source-file tests/fixtures/recorded_iq/nbfm_multichannel.cf32
+#
+# Channel i talks during seconds (i+1)…(i+2) at audio tone (400 + 200·i) Hz.
+
+dis:
+  version: 7
+  exercise_id: 1
+  site_id: 1
+  application_id: 100
+  multicast: 239.1.2.3
+  port: 3000
+  ttl: 1
+  source_interface: 0.0.0.0
+  loopback: true
+  heartbeat_interval_seconds: 5.0
+  signal_pdu_ms: 20
+  idle_behavior: hard_mute
+
+bridge:
+  zmq_bind: tcp://127.0.0.1:5555
+  metrics_bind: 127.0.0.1:9180
+  log_level: INFO
+  log_format: json
+
+captures:
+  - id: cap_stress_8ch
+    zmq_connect: tcp://127.0.0.1:5555
+    sdr:
+      driver: rtlsdr
+      args: {}
+      center_freq_hz: 100000000
+      sample_rate_hz: 2400000
+      gain_db: 20
+      bandwidth_hz: null
+      antenna: null
+
+    channels:
+      - id: stress_ch_0
+        rf_freq_hz:  99600000
+        bandwidth_hz: 25000
+        chain: nbfm
+        chain_config: { squelch_db: -60, squelch_ramp_ms: 50 }
+        radio:
+          radio_id: 1
+          entity_id: { site: 1, app: 100, entity: 6000 }
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]
+          radio_entity_type:
+            { kind: 7, domain: 3, country: 225, category: 1,
+              subcategory: 0, specific: 0, extra: 0 }
+          power_dbm: 0.0
+          input_source: 1
+
+      - id: stress_ch_1
+        rf_freq_hz:  99700000
+        bandwidth_hz: 25000
+        chain: nbfm
+        chain_config: { squelch_db: -60, squelch_ramp_ms: 50 }
+        radio:
+          radio_id: 1
+          entity_id: { site: 1, app: 100, entity: 6001 }
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]
+          radio_entity_type:
+            { kind: 7, domain: 3, country: 225, category: 1,
+              subcategory: 0, specific: 0, extra: 0 }
+          power_dbm: 0.0
+          input_source: 1
+
+      - id: stress_ch_2
+        rf_freq_hz:  99800000
+        bandwidth_hz: 25000
+        chain: nbfm
+        chain_config: { squelch_db: -60, squelch_ramp_ms: 50 }
+        radio:
+          radio_id: 1
+          entity_id: { site: 1, app: 100, entity: 6002 }
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]
+          radio_entity_type:
+            { kind: 7, domain: 3, country: 225, category: 1,
+              subcategory: 0, specific: 0, extra: 0 }
+          power_dbm: 0.0
+          input_source: 1
+
+      - id: stress_ch_3
+        rf_freq_hz:  99900000
+        bandwidth_hz: 25000
+        chain: nbfm
+        chain_config: { squelch_db: -60, squelch_ramp_ms: 50 }
+        radio:
+          radio_id: 1
+          entity_id: { site: 1, app: 100, entity: 6003 }
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]
+          radio_entity_type:
+            { kind: 7, domain: 3, country: 225, category: 1,
+              subcategory: 0, specific: 0, extra: 0 }
+          power_dbm: 0.0
+          input_source: 1
+
+      - id: stress_ch_4
+        rf_freq_hz: 100100000
+        bandwidth_hz: 25000
+        chain: nbfm
+        chain_config: { squelch_db: -60, squelch_ramp_ms: 50 }
+        radio:
+          radio_id: 1
+          entity_id: { site: 1, app: 100, entity: 6004 }
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]
+          radio_entity_type:
+            { kind: 7, domain: 3, country: 225, category: 1,
+              subcategory: 0, specific: 0, extra: 0 }
+          power_dbm: 0.0
+          input_source: 1
+
+      - id: stress_ch_5
+        rf_freq_hz: 100200000
+        bandwidth_hz: 25000
+        chain: nbfm
+        chain_config: { squelch_db: -60, squelch_ramp_ms: 50 }
+        radio:
+          radio_id: 1
+          entity_id: { site: 1, app: 100, entity: 6005 }
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]
+          radio_entity_type:
+            { kind: 7, domain: 3, country: 225, category: 1,
+              subcategory: 0, specific: 0, extra: 0 }
+          power_dbm: 0.0
+          input_source: 1
+
+      - id: stress_ch_6
+        rf_freq_hz: 100300000
+        bandwidth_hz: 25000
+        chain: nbfm
+        chain_config: { squelch_db: -60, squelch_ramp_ms: 50 }
+        radio:
+          radio_id: 1
+          entity_id: { site: 1, app: 100, entity: 6006 }
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]
+          radio_entity_type:
+            { kind: 7, domain: 3, country: 225, category: 1,
+              subcategory: 0, specific: 0, extra: 0 }
+          power_dbm: 0.0
+          input_source: 1
+
+      - id: stress_ch_7
+        rf_freq_hz: 100400000
+        bandwidth_hz: 25000
+        chain: nbfm
+        chain_config: { squelch_db: -60, squelch_ramp_ms: 50 }
+        radio:
+          radio_id: 1
+          entity_id: { site: 1, app: 100, entity: 6007 }
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]
+          radio_entity_type:
+            { kind: 7, domain: 3, country: 225, category: 1,
+              subcategory: 0, specific: 0, extra: 0 }
+          power_dbm: 0.0
+          input_source: 1

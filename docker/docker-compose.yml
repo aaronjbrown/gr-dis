@@ -1,0 +1,19 @@
+# Compose file for the bridge process only.
+# Capture must run separately in the gr-dis toolbox.
+services:
+  bridge:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    network_mode: host          # required for multicast UDP
+    volumes:
+      - /etc/gr-dis/config.yaml:/config/config.yaml:ro
+    restart: on-failure
+    healthcheck:
+      # python is in the slim image; curl is not. urllib.urlopen raises on non-2xx.
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9180/healthz', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

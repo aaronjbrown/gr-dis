@@ -1,0 +1,99 @@
+# gr-dis WFM (broadcast FM) chain example config
+#
+# Demonstrates the wfm chain on the FM broadcast band (88–108 MHz).
+# A single RTL-SDR tuned to 100 MHz covers roughly 98.8–101.2 MHz,
+# enough to receive one broadcast FM station.
+#
+# Run (file source, no SDR required):
+#   toolbox run --container gr-dis gr-dis run \
+#     --config examples/config_wfm.yaml \
+#     --source-file tests/fixtures/recorded_iq/wfm_broadcast.cf32
+#
+# Run (live SDR):
+#   toolbox run --container gr-dis gr-dis run --config examples/config_wfm.yaml
+#
+# Replace <<TODO>> values with real ones from your exercise operator.
+
+dis:
+  version: 7
+  exercise_id: 1                  # <<TODO from exercise>>
+  site_id: 1                      # <<TODO from exercise>>
+  application_id: 100             # <<TODO from exercise>>
+  multicast: 239.1.2.3            # <<TODO from exercise>>
+  port: 3000                      # <<TODO from exercise>>
+  ttl: 16
+  source_interface: 0.0.0.0
+  loopback: true
+  heartbeat_interval_seconds: 5.0
+  signal_pdu_ms: 20
+  idle_behavior: send_silence # hard_mute
+
+bridge:
+  zmq_bind: tcp://127.0.0.1:5555
+  metrics_bind: 127.0.0.1:9180
+  log_level: INFO
+  log_format: json
+
+captures:
+  - id: cap_fm_broadcast
+    zmq_connect: tcp://127.0.0.1:5555
+    sdr:
+      driver: rtlsdr              # any SoapySDR driver: hackrf, uhd, lime, ...
+      args: {}                    # e.g. { serial: "00000001" }
+      sample_rate_hz: 2400000     # 2.4 MHz
+      center_freq_hz: 107300000   # 107.3 MHz — covers +/-1.2 MHz
+      gain_db: 20
+      bandwidth_hz: null
+      antenna: null
+
+    channels:
+      # ----- FM broadcast station at 107.7 MHz -----
+      - id: vhf_ch1
+        rf_freq_hz: 107700000     # 107.7 MHz — adjust to a local broadcast station
+        bandwidth_hz: 200000      # 200 kHz channel (WFM broadcast standard)
+        chain: wfm
+        chain_config:
+          squelch_db: -60         # raise toward 0 dB if carrier is absent
+          squelch_ramp_ms: 50
+        radio:
+          radio_id: 1
+          entity_id: { site: 1, app: 100, entity: 5010 }   # <<TODO from exercise>>
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]  # <<TODO>>
+          radio_entity_type:
+            kind: 7        # Radio
+            domain: 3      # Surface
+            country: 13    # Australia
+            category: 1
+            subcategory: 0
+            specific: 0
+            extra: 0
+          power_dbm: 50.0
+          input_source: 1  # Pilot
+
+      # ----- FM broadcast station at 106.9 MHz -----
+      - id: vhf_ch2
+        rf_freq_hz: 106900000     # 106.9 MHz — adjust to a local broadcast station
+        bandwidth_hz: 200000      # 200 kHz channel (WFM broadcast standard)
+        chain: wfm
+        chain_config:
+          squelch_db: -60         # raise toward 0 dB if carrier is absent
+          squelch_ramp_ms: 50
+        radio:
+          radio_id: 2
+          entity_id: { site: 1, app: 100, entity: 5010 }   # <<TODO from exercise>>
+          attached: false
+          relative_antenna_location: [0.0, 0.0, 0.0]
+          antenna_location_ecef: [3875000.0, 332000.0, 5025000.0]  # <<TODO>>
+          radio_entity_type:
+            kind: 7        # Radio
+            domain: 3      # Surface
+            country: 13    # Australia
+            category: 1
+            subcategory: 0
+            specific: 0
+            extra: 0
+          power_dbm: 50.0
+          input_source: 1  # Pilot
+

@@ -1,0 +1,30 @@
+[Unit]
+Description=gr-dis GR capture %i
+After=gr-dis-bridge.service network-online.target
+Requires=gr-dis-bridge.service
+
+[Service]
+Type=simple
+User=gr-dis
+Group=gr-dis
+WorkingDirectory=/opt/gr-dis
+# Runs inside the gr-dis Fedora Toolbox which has GNU Radio installed.
+# The toolbox shares /etc, /opt, and $HOME with the host.
+ExecStart=/usr/bin/toolbox run --container gr-dis \
+    /home/gr-dis/.local/bin/gr-dis run \
+    --config /etc/gr-dis/config.yaml \
+    --capture %i \
+    --no-bridge
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gr-dis-capture@%i
+NoNewPrivileges=yes
+PrivateTmp=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_INET AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

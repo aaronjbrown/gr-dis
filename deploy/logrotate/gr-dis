@@ -1,0 +1,20 @@
+# gr-dis logrotate config
+#
+# Default operation uses systemd journal (no log files). View with:
+#   journalctl -u gr-dis-bridge -f
+#   journalctl -u "gr-dis-capture@*" -f
+#
+# If you redirect output to files by adding to the [Service] section:
+#   StandardOutput=append:/var/log/gr-dis/bridge.log
+#   StandardError=append:/var/log/gr-dis/bridge.log
+# then install this file: sudo cp deploy/logrotate/gr-dis /etc/logrotate.d/gr-dis
+#
+/var/log/gr-dis/*.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 gr-dis gr-dis
+}

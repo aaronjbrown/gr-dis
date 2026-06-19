@@ -1,0 +1,51 @@
+id: gr_dis_zmq_tx_source
+label: ZMQ TX Source (gr-dis)
+category: '[gr-dis]'
+
+documentation: |-
+  Feeds int16 PCM audio from the gr-dis bridge TX path into a GR flowgraph.
+
+  Subscribes to tx_audio.<channel_id> on the bridge ZMQ TX PUB socket and
+  outputs int16 samples to the GR scheduler at 8 kHz.  Outputs silence (zeros)
+  when no TX frames are available so the scheduler never stalls.
+
+  Also posts PMT messages on the tx_active message port:
+    PMT_F  TX became active (first frame arrived)
+    PMT_T  TX went idle (no frames for tx_idle_ms ms)
+
+  The endpoint must match bridge.zmq_tx_bind in the gr-dis config file.
+  channel_id must match a tx_enabled channels[].id entry in the config.
+
+templates:
+  imports: from gr_dis.engine.zmq_source import make_zmq_tx_source
+  make: >-
+    make_zmq_tx_source(
+        ${endpoint},
+        ${channel_id},
+        tx_idle_ms=${tx_idle_ms},
+    )
+
+parameters:
+- id: endpoint
+  label: ZMQ TX Endpoint
+  dtype: string
+  default: '"tcp://127.0.0.1:5556"'
+- id: channel_id
+  label: Channel ID
+  dtype: string
+  default: '"ch0"'
+- id: tx_idle_ms
+  label: TX Idle Timeout (ms)
+  dtype: int
+  default: '200'
+  hide: part
+
+outputs:
+- label: out
+  domain: stream
+  dtype: short
+- label: tx_active
+  domain: message
+  optional: true
+
+file_format: 1

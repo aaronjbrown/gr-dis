@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gr-dis"
+version = "0.1.0"
+description = "GNU Radio → DIS radio bridge"
+license = { text = "AGPL-3.0-only" }
+requires-python = ">=3.10"
+dependencies = [
+    "pyzmq>=25",
+    "msgpack>=1.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "prometheus-client>=0.17",
+    "numpy>=1.24",
+]
+
+[project.scripts]
+gr-dis = "gr_dis.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "mypy>=1.8",
+    "types-PyYAML",
+    "scapy>=2.5",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gr_dis"]
+
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
+mypy_path = "src"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "slow: integration tests that take >10s (skip with `pytest -m 'not slow'`)",
+]
