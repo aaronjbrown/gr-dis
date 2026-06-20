@@ -1,8 +1,9 @@
 """G.711 μ-law encoder/decoder: int16 PCM ↔ 8-bit μ-law bytes.
 
-Uses audioop.lin2ulaw and audioop.ulaw2lin when available (Python ≤ 3.12).
-audioop was removed in Python 3.13, so pure-Python fallbacks are provided that
-produce bit-identical output for all 8-bit/16-bit input values.
+Pure-Python implementation of ITU-T G.711 μ=255 companding.  audioop is NOT
+used: its sign-bit convention (positive silence → 0xFF) is inverted relative to
+the ITU-T standard (positive silence → 0x7F), which makes it incompatible with
+the decoder table below.
 """
 
 from __future__ import annotations
@@ -103,17 +104,5 @@ def _ulaw2lin_pure(ulaw_bytes: bytes) -> bytes:
     return struct.pack(f"<{n}h", *samples)
 
 
-try:
-    import audioop as _audioop
-
-    def lin2ulaw(pcm_bytes: bytes) -> bytes:
-        """Encode little-endian signed 16-bit PCM to μ-law (G.711 μ=255)."""
-        return _audioop.lin2ulaw(pcm_bytes, 2)
-
-    def ulaw2lin(ulaw_bytes: bytes) -> bytes:
-        """Decode 8-bit μ-law bytes to little-endian signed 16-bit PCM."""
-        return _audioop.ulaw2lin(ulaw_bytes, 2)
-
-except ImportError:
-    lin2ulaw = _lin2ulaw_pure
-    ulaw2lin = _ulaw2lin_pure
+lin2ulaw = _lin2ulaw_pure
+ulaw2lin = _ulaw2lin_pure

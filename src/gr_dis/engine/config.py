@@ -165,7 +165,8 @@ class BandPlanRange(BaseModel):
 
 class RfTxAuthorizationConfig(BaseModel):
     authorized_ranges: list[BandPlanRange] = Field(default_factory=list)
-    band_plan_file: str | None = None  # Trusted operator input; must not be derived from network data
+    # Trusted operator input; must not be derived from network data
+    band_plan_file: str | None = None
 
     @field_validator("band_plan_file")
     @classmethod

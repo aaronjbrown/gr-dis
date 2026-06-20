@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import struct
 
-import pytest
-
 from gr_dis.bridge.encoder_ulaw import lin2ulaw, ulaw2lin
 
 
 def test_ulaw2lin_silence() -> None:
-    # μ-law 0xFF encodes silence; decodes back to 0
+    # G.711 positive silence is encoded as 0x7F; 0xFF is negative silence.
+    # Both decode to PCM 0 because they sit at the boundary of each sign half.
+    assert ulaw2lin(b"\x7f") == b"\x00\x00"
     assert ulaw2lin(b"\xff") == b"\x00\x00"
 
 
@@ -48,11 +48,3 @@ def test_ulaw2lin_roundtrip_non_zero() -> None:
         assert abs(expected - d) < max(abs(expected) * 0.15 + 20, 20)
 
 
-def test_ulaw2lin_audioop_matches_pure_python() -> None:
-    try:
-        import audioop
-    except ImportError:
-        pytest.skip("audioop not available (Python 3.13+)")
-    data = bytes(range(256))
-    from gr_dis.bridge.encoder_ulaw import _ulaw2lin_pure
-    assert _ulaw2lin_pure(data) == audioop.ulaw2lin(data, 2)

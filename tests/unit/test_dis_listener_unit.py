@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from unittest.mock import MagicMock, patch
 
 from prometheus_client import CollectorRegistry
@@ -178,10 +179,8 @@ def test_queue_full_increments_rx_pdu_queue_drops() -> None:
                 assert captured_reader, "add_reader was not called"
                 captured_reader[0]()  # invoke _reader directly — triggers QueueFull
                 task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await task
-                except asyncio.CancelledError:
-                    pass
 
         asyncio.run(_run())
 
