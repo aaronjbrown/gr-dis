@@ -96,7 +96,7 @@ def _build_sink_class() -> type:
 
             self._sock: zmq.Socket[Any] | None = None
             self._seq = 0
-            self._buffer = np.empty(0, dtype=np.int16)
+            self._buffer: np.ndarray[Any, np.dtype[np.int16]] = np.empty(0, dtype=np.int16)
             self._squelch_open = False
             self._last_meta_mono = 0.0
 
@@ -119,10 +119,10 @@ def _build_sink_class() -> type:
 
         def work(
             self,
-            input_items: list[np.ndarray],
-            output_items: list[np.ndarray],
+            input_items: list[np.ndarray[Any, Any]],
+            output_items: list[np.ndarray[Any, Any]],
         ) -> int:
-            samples: np.ndarray = input_items[0]
+            samples: np.ndarray[Any, Any] = input_items[0]
             n_in = len(samples)
             if n_in == 0:
                 return 0
@@ -141,7 +141,7 @@ def _build_sink_class() -> type:
 
             return n_in
 
-        def _emit_frame(self, frame: np.ndarray) -> None:
+        def _emit_frame(self, frame: np.ndarray[Any, Any]) -> None:
             rms = float(np.sqrt(np.mean(frame.astype(np.float64) ** 2)))
             squelch_now = rms > self._squelch_rms_threshold
 

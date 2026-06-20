@@ -64,7 +64,7 @@ def _build_source_class() -> type:
             self._tx_idle_ms = tx_idle_ms
             self._ctx = zmq_context or zmq.Context()
             self._sock: zmq.Socket[Any] | None = None
-            self._buffer = np.empty(0, dtype=np.int16)
+            self._buffer: np.ndarray[Any, np.dtype[np.int16]] = np.empty(0, dtype=np.int16)
             self._is_tx_active = False
             self._last_frame_time = 0.0
             self._rx_gate: Any = None
@@ -88,8 +88,8 @@ def _build_source_class() -> type:
 
         def work(
             self,
-            input_items: list[np.ndarray],
-            output_items: list[np.ndarray],
+            input_items: list[np.ndarray[Any, Any]],
+            output_items: list[np.ndarray[Any, Any]],
         ) -> int:
             sock = self._ensure_socket()
 
